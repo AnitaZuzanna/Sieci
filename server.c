@@ -35,16 +35,14 @@ int main() {
  
     char message[200] = "";
     int client_socket;
-    int sockets[20];
+    int clients[20];
     int max_clients = 10;
     int i;
     fd_set readfds;
     struct sockaddr_in client_address;
 
     for (i=0; i<max_clients; i++){
-
-        sockets[i] = 0;
-    
+        clients[i] = 0;
     }
    
  
@@ -54,12 +52,12 @@ int main() {
         int maxfd = server_socket;
 
         for (i = 0; i<max_clients; i++){
-            if (sockets[i] > 0){
-                FD_SET(sockets[i], &readfds);
+            if (clients[i] > 0){
+                FD_SET(clients[i], &readfds);
             }
 
-            if(sockets[i] > maxfd){
-                maxfd = sockets[i];
+            if(clients[i] > maxfd){
+                maxfd = clients[i];
             }
         }
 
@@ -71,25 +69,26 @@ int main() {
             client_socket = accept(server_socket, (struct sockaddr*) &server_address, (socklen_t*)&addr_size);
 
             for (i = 0; i< max_clients; i++){
-                if (sockets[i] == 0){
-                    sockets[i] = client_socket;
+                if (clients[i] == 0){
+                    clients[i] = client_socket;
                     break;
                 }
             }
         }
 
         for (i = 0; i<max_clients; i++){
-            if(FD_ISSET(sockets[i], &readfds)){
-                if((read(sockets[i], message, 200) == 0)){
-                    close(sockets[i]);
-                    sockets[i] = 0;
+            if(FD_ISSET(clients[i], &readfds)){
+                if((read(clients[i], message, 200) == 0)){
+                    printf("socket %d disconnected\n", clients[i]);
+                    close(clients[i]);
+                    clients[i] = 0;
                 } else {
                     for (int j = 0; j<max_clients; j++){
-                        if (j == i || sockets[j]<1){
+                        if (j == i || clients[j]<1){
                             continue;
                         }
-                        printf("Sending to socket %d\n", sockets[j]);
-                        send(sockets[j], message, strlen(message), 0);
+                        printf("Sending to socket %d\n", clients[j]);
+                        send(clients[j], message, strlen(message), 0);
                     }
                 } 
             }

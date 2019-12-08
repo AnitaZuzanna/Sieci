@@ -88,13 +88,14 @@ int main() {
                     close(clients[i]);
                     clients[i] = 0;
                 } else {
-
-                    for (int j = 0; j<max_clients; j++){
-                        if (j == i || clients[j]<1){
-                            continue;
+                    if (message[0] == 'M'){
+                        for (int j = 0; j<max_clients; j++){
+                            if (j == i || clients[j]<1){
+                                continue;
+                            }
+                            printf("Sending to socket %d\n", clients[j]);
+                            send(clients[j], message+2, strlen(message)-2, 0);
                         }
-                        printf("Sending to socket %d\n", clients[j]);
-                        send(clients[j], message, strlen(message), 0);
                     }
                     memset(message, 0, sizeof(message));
                 } 

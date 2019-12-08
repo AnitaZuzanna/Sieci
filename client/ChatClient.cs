@@ -13,7 +13,7 @@ namespace Client
         {
 
             
-            byte[] sdMessage = new byte[1024];
+           
             int port = 9000;
              
             IPAddress ipAddress = IPAddress.Parse(address);
@@ -31,15 +31,24 @@ namespace Client
 
             while((input = Console.ReadLine()) != "Exit")
             {
-                
-                sdMessage = Encoding.ASCII.GetBytes(input);
-                int sendMessage = clientSocket.Send(sdMessage);
+                if(input[0] == 'M')
+                {
+                    sendMessage(clientSocket,input);
+                }           
             }
 
             clientSocket.Shutdown(SocketShutdown.Both);
-                clientSocket.Close();
+            clientSocket.Close();
 
         }
+
+         static void sendMessage(Socket clSocket, string msg)
+         {
+            byte[] sdMessage = new byte[1024];
+            sdMessage = Encoding.ASCII.GetBytes(msg);
+            int sendMessage = clSocket.Send(sdMessage);
+         }
+
 
          static void ReceiveData(Socket clientSocket)
          {

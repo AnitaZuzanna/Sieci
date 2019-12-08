@@ -8,11 +8,16 @@
 #include <sys/time.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #define PORT 9000
 #define BUFF 512
- 
- 
+
+typedef struct {
+    int socket;
+    bool isUploading;
+} client_t;
+
 int main() {
  
     int server_socket;
@@ -25,7 +30,7 @@ int main() {
     server_address.sin_addr.s_addr = INADDR_ANY;
  
     socklen_t addr_size = sizeof(server_address);
-    
+
     if(bind(server_socket, (struct sockaddr*) &server_address, addr_size) != 0) {
         printf("Bind failed\n");
         exit(1);
@@ -83,6 +88,7 @@ int main() {
                     close(clients[i]);
                     clients[i] = 0;
                 } else {
+
                     for (int j = 0; j<max_clients; j++){
                         if (j == i || clients[j]<1){
                             continue;
@@ -90,6 +96,7 @@ int main() {
                         printf("Sending to socket %d\n", clients[j]);
                         send(clients[j], message, strlen(message), 0);
                     }
+                    memset(message, 0, sizeof(message));
                 } 
             }
         }

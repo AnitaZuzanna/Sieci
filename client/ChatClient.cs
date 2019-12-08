@@ -2,6 +2,7 @@
 using System.Net;  
 using System.Net.Sockets;  
 using System.Text;  
+using System.Threading;
   
 
 namespace Client
@@ -11,7 +12,7 @@ namespace Client
         public static void StartClient(string address)
         {
 
-            byte[] rcMessage = new byte[1024];
+            
             byte[] sdMessage = new byte[1024];
             int port = 9000;
              
@@ -20,11 +21,17 @@ namespace Client
 
             Socket clientSocket = new Socket( ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
+            Thread thread = new Thread(o => ReceiveData((Socket)o));
+
             clientSocket.Connect(remoteEP);
 
-            while(true)
+            thread.Start(clientSocket);
+
+            string input;
+
+            while((input = Console.ReadLine()) != "Exit")
             {
-                string input = Console.ReadLine();
+                
                 sdMessage = Encoding.ASCII.GetBytes(input);
                 int sendMessage = clientSocket.Send(sdMessage);
             }
@@ -33,6 +40,20 @@ namespace Client
                 clientSocket.Close();
 
         }
+
+         static void ReceiveData(Socket clientSocket)
+         {
+             byte[] rcMessage = new byte[1024];
+              
+            while(true)
+            {
+                int msgLen = clientSocket.Receive(rcMessage);
+                if (msgLen == 0){
+                    break;
+                }
+                Console.WriteLine(Encoding.ASCII.GetString(rcMessage,0,msgLen));
+            }
+         }
         
         static int Main(string[] args)
         {

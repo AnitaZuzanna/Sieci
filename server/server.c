@@ -107,8 +107,11 @@ int main() {
                         }
                     }
 
-                    if (message[0] == 'D'){
-                        
+                    if (message[0] == 'U'){
+                        char file_name[100];
+                        size_t file_len;
+                        sscanf(message,"%*c %s %ld", file_name, &file_len);
+                        printf("User wants to send file %s size: %ld\n", file_name, file_len);
                     }
                     memset(message, 0, sizeof(message));
                 } 

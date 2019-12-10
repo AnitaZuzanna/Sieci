@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;  
 using System.Text;  
 using System.Threading;
-  
+using System.IO;
 
 namespace Client
 {
@@ -34,7 +34,12 @@ namespace Client
                 if(input[0] == 'M')
                 {
                     sendMessage(clientSocket,input);
-                }           
+                }          
+
+                if(input[0] == 'U')
+                {
+                    sendFile(clientSocket, input);
+                } 
             }
 
             clientSocket.Shutdown(SocketShutdown.Both);
@@ -42,6 +47,21 @@ namespace Client
 
         }
 
+        static void sendFile(Socket clSocket, string msg)
+        {   
+            string fileName = msg.Substring(2);
+            FileInfo fi = new FileInfo(fileName);
+
+            if(fi.Exists == false)
+            {
+                Console.WriteLine("File does not exist");
+                return;
+            }
+            Console.WriteLine($"file: {fi.Length}");
+            string messageString = "U " + fileName + " " + fi.Length;
+            sendMessage(clSocket, messageString);
+            //odebrac odp serwera
+        }
          static void sendMessage(Socket clSocket, string msg)
          {
             byte[] sdMessage = new byte[1024];

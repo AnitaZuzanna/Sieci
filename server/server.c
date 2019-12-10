@@ -13,13 +13,17 @@
 #define PORT 9000
 #define BUFF 512
 
+typedef enum {
+    READY,
+    UPLOADING
+} state_t;
+
 typedef struct {
+    state_t state;
     int socket;
-    bool isUploading;
 } client_t;
 
 int main() {
- 
     int server_socket;
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
  
@@ -36,18 +40,23 @@ int main() {
         exit(1);
     }
  
+ if(listen(server_socket, 5) != 0) {
+        printf("Listen failed\n");
+        exit(1);
+    }
     listen(server_socket, 5);
  
     char message[200] = "";
     int client_socket;
-    int clients[20];
+    client_t clients[20];
     int max_clients = 10;
     int i;
     fd_set readfds;
     struct sockaddr_in client_address;
 
     for (i=0; i<max_clients; i++){
-        clients[i] = 0;
+        clients[i].socket = 0;
+        clients[i].state = READY;
     }
    
  
@@ -57,12 +66,12 @@ int main() {
         int maxfd = server_socket;
 
         for (i = 0; i<max_clients; i++){
-            if (clients[i] > 0){
-                FD_SET(clients[i], &readfds);
+            if (clients[i].socket > 0){
+                FD_SET(clients[i].socket, &readfds);
             }
 
-            if(clients[i] > maxfd){
-                maxfd = clients[i];
+            if(clients[i].socket > maxfd){
+                maxfd = clients[i].socket;
             }
         }
 
@@ -74,28 +83,32 @@ int main() {
             client_socket = accept(server_socket, (struct sockaddr*) &server_address, (socklen_t*)&addr_size);
 
             for (i = 0; i< max_clients; i++){
-                if (clients[i] == 0){
-                    clients[i] = client_socket;
+                if (clients[i].socket == 0){
+                    clients[i].socket = client_socket;
                     break;
                 }
             }
         }
 
         for (i = 0; i<max_clients; i++){
-            if(FD_ISSET(clients[i], &readfds)){
-                if((read(clients[i], message, 200) == 0)){
-                    printf("socket %d disconnected\n", clients[i]);
-                    close(clients[i]);
-                    clients[i] = 0;
+            if(FD_ISSET(clients[i].socket, &readfds)){
+                if((read(clients[i].socket, message, 200) == 0)){
+                    printf("socket %d disconnected\n", clients[i].socket);
+                    close(clients[i].socket);
+                    clients[i].socket = 0;
                 } else {
                     if (message[0] == 'M'){
                         for (int j = 0; j<max_clients; j++){
-                            if (j == i || clients[j]<1){
+                            if (j == i || clients[j].socket<1){
                                 continue;
                             }
-                            printf("Sending to socket %d\n", clients[j]);
-                            send(clients[j], message+2, strlen(message)-2, 0);
+                            printf("Sending to socket %d\n", clients[j].socket);
+                            send(clients[j].socket, message+2, strlen(message)-2, 0);
                         }
+                    }
+
+                    if (message[0] == 'D'){
+                        
                     }
                     memset(message, 0, sizeof(message));
                 } 

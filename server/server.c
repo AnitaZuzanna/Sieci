@@ -112,6 +112,14 @@ int main() {
                         size_t file_len;
                         sscanf(message,"%*c %s %ld", file_name, &file_len);
                         printf("User wants to send file %s size: %ld\n", file_name, file_len);
+                        //otworzyc plik(o ile sie da)
+                        FILE *recieved_file;
+                        if ((recieved_file=fopen(file_name, "w"))==NULL) {
+                            printf ("Opening file failed\n");
+                            exit(1);
+                        } 
+                        clients[i].state = UPLOADING;
+
                     }
                     memset(message, 0, sizeof(message));
                 } 

@@ -25,6 +25,8 @@ typedef struct {
 
 int main() {
     int server_socket;
+    char file_name[100];
+    size_t file_len;
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
  
     struct sockaddr_in server_address;
@@ -96,8 +98,22 @@ int main() {
                     printf("socket %d disconnected\n", clients[i].socket);
                     close(clients[i].socket);
                     clients[i].socket = 0;
-                } else {
-                    if (message[0] == 'M'){
+                } 
+                else {
+                        
+                    if(clients[i].state == UPLOADING){
+                        int remain_data = file_len;
+                        while(remain_data>0){
+                            fwrite(, , ,file_name); 
+                            remain_data -= /*pobrane bajty*/;
+                        }
+                        clients[i].state == READY;
+                        fclose(file_name);
+                       
+                        
+                    }
+
+                    else if (message[0] == 'M'){
                         for (int j = 0; j<max_clients; j++){
                             if (j == i || clients[j].socket<1){
                                 continue;
@@ -107,9 +123,9 @@ int main() {
                         }
                     }
 
-                    if (message[0] == 'U'){
-                        char file_name[100];
-                        size_t file_len;
+                    else if (message[0] == 'U'){
+                        
+                        
                         sscanf(message,"%*c %s %ld", file_name, &file_len);
                         printf("User wants to send file %s size: %ld\n", file_name, file_len);
                         //otworzyc plik(o ile sie da)
@@ -121,6 +137,7 @@ int main() {
                         clients[i].state = UPLOADING;
 
                     }
+                    
                     memset(message, 0, sizeof(message));
                 } 
             }

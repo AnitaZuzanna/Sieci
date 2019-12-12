@@ -49,6 +49,7 @@ namespace Client
 
         static void sendFile(Socket clSocket, string msg)
         {   
+            
             string fileName = msg.Substring(2);
             FileInfo fi = new FileInfo(fileName);
 
@@ -60,7 +61,19 @@ namespace Client
             Console.WriteLine($"file: {fi.Length}");
             string messageString = "U " + fileName + " " + fi.Length;
             sendMessage(clSocket, messageString);
-            //odebrac odp serwera
+            long remainingData = fi.Length;
+            // otworzyc plik//
+            FileStream file = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            //buffor
+            byte[] buffer = new byte[200];
+            int numBytesRead;
+            while(remainingData > 0){
+                numBytesRead = file.Read(buffer, 0, 200);
+                clSocket.Send(buffer, numBytesRead, SocketFlags.None);
+                remainingData -= numBytesRead; 
+            }
+            file.Close();
+
         }
          static void sendMessage(Socket clSocket, string msg)
          {

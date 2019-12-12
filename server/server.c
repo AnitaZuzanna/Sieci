@@ -21,12 +21,14 @@ typedef enum {
 typedef struct {
     state_t state;
     int socket;
+    FILE *recieved_file;
+    ssize_t remaining_data;
 } client_t;
 
 int main() {
     int server_socket;
-    char file_name[100];
-    size_t file_len;
+    
+    
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
  
     struct sockaddr_in server_address;
@@ -42,7 +44,7 @@ int main() {
         exit(1);
     }
  
- if(listen(server_socket, 5) != 0) {
+    if(listen(server_socket, 5) != 0) {
         printf("Listen failed\n");
         exit(1);
     }
@@ -94,7 +96,8 @@ int main() {
 
         for (i = 0; i<max_clients; i++){
             if(FD_ISSET(clients[i].socket, &readfds)){
-                if((read(clients[i].socket, message, 200) == 0)){
+                ssize_t bytes_read = read(clients[i].socket, message, 200);
+                if((bytes_read) == 0){
                     printf("socket %d disconnected\n", clients[i].socket);
                     close(clients[i].socket);
                     clients[i].socket = 0;
@@ -102,15 +105,12 @@ int main() {
                 else {
                         
                     if(clients[i].state == UPLOADING){
-                        int remain_data = file_len;
-                        while(remain_data>0){
-                            fwrite(, , ,file_name); 
-                            remain_data -= /*pobrane bajty*/;
+                        fwrite(message, 1, bytes_read, clients[i].recieved_file);
+                        clients[i].remaining_data -= bytes_read;
+                        if (clients[i].remaining_data == 0){
+                            clients[i].state == READY;
+                            fclose(clients[i].recieved_file);
                         }
-                        clients[i].state == READY;
-                        fclose(file_name);
-                       
-                        
                     }
 
                     else if (message[0] == 'M'){
@@ -124,13 +124,13 @@ int main() {
                     }
 
                     else if (message[0] == 'U'){
-                        
-                        
-                        sscanf(message,"%*c %s %ld", file_name, &file_len);
-                        printf("User wants to send file %s size: %ld\n", file_name, file_len);
+                        size_t file_len;
+                        char file_name[100];
+                        sscanf(message,"%*c %s %ld", file_name, &clients[i].remaining_data);
+                        printf("User wants to send file %s size: %ld\n", file_name, clients[i].remaining_data);
                         //otworzyc plik(o ile sie da)
-                        FILE *recieved_file;
-                        if ((recieved_file=fopen(file_name, "w"))==NULL) {
+                        
+                        if ((clients[i].recieved_file=fopen(file_name, "w"))==NULL) {
                             printf ("Opening file failed\n");
                             exit(1);
                         } 

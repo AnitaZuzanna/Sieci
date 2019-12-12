@@ -105,10 +105,11 @@ int main() {
                 else {
                         
                     if(clients[i].state == UPLOADING){
+                        printf("Downloading file from %d\n", clients[i].socket);
                         fwrite(message, 1, bytes_read, clients[i].recieved_file);
                         clients[i].remaining_data -= bytes_read;
                         if (clients[i].remaining_data == 0){
-                            clients[i].state == READY;
+                            clients[i].state = READY;
                             fclose(clients[i].recieved_file);
                         }
                     }
